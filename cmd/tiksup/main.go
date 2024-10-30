@@ -34,16 +34,11 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/joho/godotenv"
-	"github.com/jsusmachaca/go-router/pkg/router"
-	"github.com/tiksup/tiksup-kafka-worker/api/handler"
-	"github.com/tiksup/tiksup-kafka-worker/api/middleware"
 	"github.com/tiksup/tiksup-kafka-worker/internal/config"
 	"github.com/tiksup/tiksup-kafka-worker/internal/database"
 	"github.com/tiksup/tiksup-kafka-worker/internal/service"
@@ -89,25 +84,4 @@ func init() {
 
 func main() {
 	go service.KafkaWorker(client, &configMap, db, mongoConn)
-
-	router := router.NewRouter()
-
-	userInfo := &handler.GetUserInfo{DB: db}
-	randomMovies := &handler.GetRandomMovies{DB: db, MongoConn: mongoConn}
-	login := &handler.Login{DB: db}
-	register := &handler.Register{DB: db}
-
-	router.Post("/api/login", nil, login)
-	router.Post("/api/register", nil, register)
-	router.Get("/user-info", middleware.AuthMiddleware, userInfo)
-	router.Get("/random/movies", middleware.AuthMiddleware, randomMovies)
-
-	server := &http.Server{
-		Addr:    fmt.Sprintf(":%s", os.Getenv("PORT")),
-		Handler: router.ServeMux,
-	}
-	fmt.Printf("Server listen on http://localhost%s\n", server.Addr)
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("Error to initialize server %v", err)
-	}
 }

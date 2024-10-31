@@ -21,7 +21,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -43,26 +42,22 @@ func KafkaWorker(configMap *kafka.ConfigMap, mC database.MongoConnection) error 
 	for {
 		msg, err := consumer.ReadMessage(-1)
 		if err != nil {
-			log.Printf("Error getting Kafka information: %v\n", err)
+			log.Fatalf("Error getting Kafka information: %v\n", err)
 		}
-
-		fmt.Printf("%s\n", msg.Value)
 
 		if err := json.Unmarshal(msg.Value, &kafkaData); err != nil {
-			log.Fatalf("Error to Unmarshall message: %v\n", err)
+			log.Printf("Error to Unmarshall message: %v\n", err)
+			continue
 		}
-
-		/* if err := kafaDB.UpdateUserInfo(kafkaData); err != nil {
-			log.Printf("Error to insert kafka information on database: %v\n", err)
-		} */
 
 		if err := kafaDB.UpdateUserInfo(kafkaData); err != nil {
-			fmt.Println("Ha ocurrido un error", err)
+			log.Printf("An error ocurred: %v\n", err)
+			continue
 		}
-		fmt.Println("User info insert to database")
+
 		if kafkaData.Next {
-			// go MovieWorker(client, db, kafkaData, mC)
-			fmt.Println("Requesting for more data")
+			log.Println("Requesting for more data")
 		}
+		log.Println("User info insert to updated")
 	}
 }

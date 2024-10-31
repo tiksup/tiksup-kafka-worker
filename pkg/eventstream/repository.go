@@ -1,119 +1,76 @@
 package eventstream
 
 import (
-	"database/sql"
-	"log"
+	"context"
+	"fmt"
 
-	"github.com/tiksup/tiksup-kafka-worker/pkg/auth"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type KafkaRepository struct {
-	DB *sql.DB
+	Collection *mongo.Collection
+	CTX        context.Context
 }
 
 func (kafka *KafkaRepository) UpdateUserInfo(data KafkaData) error {
-	auth := &auth.UserRepository{DB: kafka.DB}
+	filter := bson.M{"user_id": data.UserID}
 
-	preferenceID, err := auth.GetPreferenceID(data.UserID)
+	ensureFields := bson.M{
+		"$setOnInsert": bson.M{
+			"preferences.genre_score":       []bson.M{},
+			"preferences.protagonist_score": []bson.M{},
+			"preferences.director_score":    []bson.M{},
+		},
+	}
+	_, err := kafka.Collection.UpdateOne(kafka.CTX, filter, ensureFields, options.Update().SetUpsert(true))
+	if err != nil {
+		return fmt.Errorf("error ensuring fields exist: %v", err)
+	}
+
+	update := bson.M{
+		"$inc": bson.M{
+			"preferences.genre_score.$[genre].score":             data.Preferences.GenreScore[0].Score,
+			"preferences.protagonist_score.$[protagonist].score": data.Preferences.ProtagonistScore[0].Score,
+			"preferences.director_score.$[director].score":       data.Preferences.DirectorScore[0].Score,
+		},
+	}
+
+	arrayFilters := options.Update().SetArrayFilters(options.ArrayFilters{
+		Filters: []any{
+			bson.M{"genre.name": data.Preferences.GenreScore[0].Name},
+			bson.M{"protagonist.name": data.Preferences.ProtagonistScore[0].Name},
+			bson.M{"director.name": data.Preferences.DirectorScore[0].Name},
+		},
+	})
+
+	results, err := kafka.Collection.UpdateOne(kafka.CTX, filter, update, arrayFilters)
 	if err != nil {
 		return err
 	}
-
-	tx, err := kafka.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err != nil {
-			log.Println("Kafka transaction rolled back:", err)
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
+	if results.ModifiedCount == 0 {
+		updatePush := bson.M{
+			"$push": bson.M{
+				"preferences.genre_score": bson.M{
+					"name":  data.Preferences.GenreScore[0].Name,
+					"score": data.Preferences.GenreScore[0].Score,
+				},
+				"preferences.protagonist_score": bson.M{
+					"name":  data.Preferences.ProtagonistScore[0].Name,
+					"score": data.Preferences.ProtagonistScore[0].Score,
+				},
+				"preferences.director_score": bson.M{
+					"name":  data.Preferences.DirectorScore[0].Name,
+					"score": data.Preferences.DirectorScore[0].Score,
+				},
+			},
 		}
-	}()
 
-	queryGenre := `INSERT INTO genre_score 
-		(preference_id, name, score) 
-		VALUES ($1, $2, $3)
-		ON CONFLICT (preference_id, name)
-		DO UPDATE SET score = genre_score.score + EXCLUDED.score;`
-	stmtGenre, err := tx.Prepare(queryGenre)
-	if err != nil {
-		return err
-	}
-	defer stmtGenre.Close()
-
-	for _, d := range data.Preferences.GenreScore {
-		_, err := stmtGenre.Exec(preferenceID, d.Name, d.Score)
+		_, err = kafka.Collection.UpdateOne(kafka.CTX, filter, updatePush)
 		if err != nil {
-			log.Println(err)
 			return err
 		}
-		log.Println("Updated genre success")
 	}
-
-	queryProtagonist := `INSERT INTO protagonist_score 
-			(preference_id, name, score) 
-			VALUES ($1, $2, $3)
-			ON CONFLICT (preference_id, name)
-			DO UPDATE SET score = protagonist_score.score + EXCLUDED.score;`
-	stmtProtagonist, err := tx.Prepare(queryProtagonist)
-	if err != nil {
-		return err
-	}
-	defer stmtProtagonist.Close()
-
-	_, err = stmtProtagonist.Exec(
-		preferenceID,
-		data.Preferences.ProtagonistScore.Name,
-		data.Preferences.ProtagonistScore.Score,
-	)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	log.Println("Updated protagonist success")
-
-	queryDirector := `INSERT INTO director_score 
-			(preference_id, name, score) 
-			VALUES ($1, $2, $3)
-			ON CONFLICT (preference_id, name)
-			DO UPDATE SET score = director_score.score + EXCLUDED.score;`
-	stmtDirector, err := tx.Prepare(queryDirector)
-	if err != nil {
-		return err
-	}
-	defer stmtDirector.Close()
-
-	_, err = stmtDirector.Exec(
-		preferenceID,
-		data.Preferences.DirectorScore.Name,
-		data.Preferences.DirectorScore.Score,
-	)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	log.Println("Updated director success")
-
-	history := `INSERT INTO history (user_id, movie_id) 
-		VALUES ($1, $2)
-		ON CONFLICT (user_id, movie_id)
-		DO NOTHING;`
-	stmtHistory, err := tx.Prepare(history)
-	if err != nil {
-		return err
-	}
-	defer stmtHistory.Close()
-
-	movie_id := IsValidObjectID(data.MovieID)
-	_, err = stmtHistory.Exec(data.UserID, movie_id)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	log.Println("Insert movie in history")
-
 	return nil
 }

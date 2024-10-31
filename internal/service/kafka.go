@@ -1,10 +1,9 @@
 package service
 
 import (
-	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/tiksup/tiksup-kafka-worker/internal/config"
@@ -12,9 +11,9 @@ import (
 	"github.com/tiksup/tiksup-kafka-worker/pkg/movie"
 )
 
-func KafkaWorker(client *http.Client, configMap *kafka.ConfigMap, db *sql.DB, mC movie.MongoConnection) error {
+func KafkaWorker(configMap *kafka.ConfigMap, mC movie.MongoConnection) error {
 	var kafkaData eventstream.KafkaData
-	kafaDB := &eventstream.KafkaRepository{DB: db}
+	kafaDB := &eventstream.KafkaRepository{Collection: mC.Collection, CTX: mC.CTX}
 
 	consumer, err := config.KafKaConsumer(configMap)
 	if err != nil {
@@ -28,15 +27,23 @@ func KafkaWorker(client *http.Client, configMap *kafka.ConfigMap, db *sql.DB, mC
 			log.Printf("Error getting Kafka information: %v\n", err)
 		}
 
+		fmt.Printf("%s\n", msg.Value)
+
 		if err := json.Unmarshal(msg.Value, &kafkaData); err != nil {
 			log.Fatalf("Error to Unmarshall message: %v\n", err)
 		}
 
-		if err := kafaDB.UpdateUserInfo(kafkaData); err != nil {
+		/* if err := kafaDB.UpdateUserInfo(kafkaData); err != nil {
 			log.Printf("Error to insert kafka information on database: %v\n", err)
+		} */
+
+		if err := kafaDB.UpdateUserInfo(kafkaData); err != nil {
+			fmt.Println("Ha ocurrido un error", err)
 		}
+		fmt.Println("User info insert to database")
 		if kafkaData.Next {
-			go MovieWorker(client, db, kafkaData, mC)
+			// go MovieWorker(client, db, kafkaData, mC)
+			fmt.Println("Requesting for more data")
 		}
 	}
 }

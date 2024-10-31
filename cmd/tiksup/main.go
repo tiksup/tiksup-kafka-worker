@@ -83,5 +83,5 @@ func init() {
 }
 
 func main() {
-	go service.KafkaWorker(client, &configMap, db, mongoConn)
+	service.KafkaWorker(&configMap, mongoConn)
 }

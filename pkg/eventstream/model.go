@@ -8,22 +8,12 @@ type KafkaData struct {
 }
 
 type Preferences struct {
-	GenreScore       []GenreScore     `json:"genre_score"`
-	ProtagonistScore ProtagonistScore `json:"protagonist_score"`
-	DirectorScore    DirectorScore    `json:"director_score"`
+	GenreScore       []Score `json:"genre_score"`
+	ProtagonistScore []Score `json:"protagonist_score"`
+	DirectorScore    []Score `json:"director_score"`
 }
 
-type GenreScore struct {
-	Name  string  `json:"name"`
-	Score float64 `json:"score"`
-}
-
-type ProtagonistScore struct {
-	Name  string  `json:"name"`
-	Score float64 `json:"score"`
-}
-
-type DirectorScore struct {
+type Score struct {
 	Name  string  `json:"name"`
 	Score float64 `json:"score"`
 }

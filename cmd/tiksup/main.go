@@ -40,7 +40,6 @@ import (
 	"github.com/tiksup/tiksup-kafka-worker/internal/config"
 	"github.com/tiksup/tiksup-kafka-worker/internal/database"
 	"github.com/tiksup/tiksup-kafka-worker/internal/service"
-	"github.com/tiksup/tiksup-kafka-worker/pkg/movie"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -49,7 +48,7 @@ var (
 	collection *mongo.Collection
 	configMap  kafka.ConfigMap
 	ctx        = context.TODO()
-	mongoConn  movie.MongoConnection
+	mongoConn  database.MongoConnection
 )
 
 func init() {
@@ -60,11 +59,11 @@ func init() {
 	configMap = config.KafkaConfig()
 
 	var err error
-	collection, err = database.MongoConnection(ctx)
+	collection, err = database.GetMongoConnection(ctx)
 	if err != nil {
 		log.Fatalf("Error trying to connect to mongo: %v", err)
 	}
-	mongoConn = movie.MongoConnection{Collection: collection, CTX: ctx}
+	mongoConn = database.MongoConnection{Collection: collection, CTX: ctx}
 }
 
 func main() {

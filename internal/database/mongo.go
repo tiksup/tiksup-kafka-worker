@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func MongoConnection(ctx context.Context) (*mongo.Collection, error) {
+func GetMongoConnection(ctx context.Context) (*mongo.Collection, error) {
 	MONGO_HOST := os.Getenv("MONGO_HOST")
 	MONGO_PORT := os.Getenv("MONGO_PORT")
 	MONGO_USER := os.Getenv("MONGO_USER")

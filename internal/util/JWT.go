@@ -1,11 +1,11 @@
 package util
 
 import (
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/tiksup/tiksup-kafka-worker/pkg/auth"
 )
 
 func CreateToken(id string, username string) (string, error) {
@@ -36,7 +36,7 @@ func ValidateToken(tokenstring string) (jwt.MapClaims, error) {
 	}
 
 	if !token.Valid {
-		return nil, auth.ErrInvalidToken
+		return nil, fmt.Errorf("invalid json web token")
 	}
 	claims, _ := token.Claims.(jwt.MapClaims)
 

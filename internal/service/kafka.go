@@ -7,11 +7,11 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/tiksup/tiksup-kafka-worker/internal/config"
+	"github.com/tiksup/tiksup-kafka-worker/internal/database"
 	"github.com/tiksup/tiksup-kafka-worker/pkg/eventstream"
-	"github.com/tiksup/tiksup-kafka-worker/pkg/movie"
 )
 
-func KafkaWorker(configMap *kafka.ConfigMap, mC movie.MongoConnection) error {
+func KafkaWorker(configMap *kafka.ConfigMap, mC database.MongoConnection) error {
 	var kafkaData eventstream.KafkaData
 	kafaDB := &eventstream.KafkaRepository{Collection: mC.Collection, CTX: mC.CTX}
 

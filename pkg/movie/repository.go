@@ -31,12 +31,12 @@ type MovieRepository struct {
 	CTX      context.Context
 }
 
-func (movie *MovieRepository) InsertHistory(userId string, movieId string) error {
+func (movie *MovieRepository) InsertHistory(userID string, movieID string) error {
 	ctx := movie.CTX
 	collection := movie.Database.Collection("history")
 	data := MovieHistory{
-		UserID:  userId,
-		MovieID: movieId,
+		UserID:  userID,
+		MovieID: movieID,
 	}
 
 	_, err := collection.InsertOne(ctx, data)

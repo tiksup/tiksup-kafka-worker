@@ -1,6 +1,6 @@
 /*
 * This file contains functions in charge of inserting and
-* updating data obtained from Kafka for the MongoDB database.
+* updating doc obtained from Kafka for the MongoDB database.
 * Copyright (C) 2024-2025 jsusmachaca
 *
 * This program is free software: you can redistribute it and/or modify
@@ -33,8 +33,8 @@ type KafkaRepository struct {
 	CTX      context.Context
 }
 
-func (kafka *KafkaRepository) UpdateUserInfo(data KafkaData) error {
-	filter := bson.M{"user_id": data.UserID}
+func (kafka *KafkaRepository) UpdateUserInfo(doc KafkaData) error {
+	filter := bson.M{"user_id": doc.UserID}
 	ctx := kafka.CTX
 	collection := kafka.Database.Collection("user_info")
 
@@ -51,31 +51,31 @@ func (kafka *KafkaRepository) UpdateUserInfo(data KafkaData) error {
 	}
 
 	// Genre scores
-	if err := updateGenreScores(data, filter, ctx, collection); err != nil {
+	if err := updateGenreScores(doc, filter, ctx, collection); err != nil {
 		return err
 	}
 	// Protagonist scores
-	if err := updateProtagonistScores(data, filter, ctx, collection); err != nil {
+	if err := updateProtagonistScores(doc, filter, ctx, collection); err != nil {
 		return err
 	}
 	// Director scores
-	if err := updateDirectorScores(data, filter, ctx, collection); err != nil {
+	if err := updateDirectorScores(doc, filter, ctx, collection); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func updateGenreScores(data KafkaData, filter bson.M, ctx context.Context, collection *mongo.Collection) error {
+func updateGenreScores(doc KafkaData, filter bson.M, ctx context.Context, collection *mongo.Collection) error {
 	updateIncGenre := bson.M{
 		"$inc": bson.M{
-			"preferences.genre_score.$[genre].score": data.Preferences.GenreScore[0].Score,
+			"preferences.genre_score.$[genre].score": doc.Preferences.GenreScore[0].Score,
 		},
 	}
 
 	arrayFiltersGenre := options.ArrayFilters{
 		Filters: []any{
-			bson.M{"genre.name": data.Preferences.GenreScore[0].Name},
+			bson.M{"genre.name": doc.Preferences.GenreScore[0].Name},
 		},
 	}
 
@@ -89,8 +89,8 @@ func updateGenreScores(data KafkaData, filter bson.M, ctx context.Context, colle
 		updatePushGenre := bson.M{
 			"$addToSet": bson.M{
 				"preferences.genre_score": bson.M{
-					"name":  data.Preferences.GenreScore[0].Name,
-					"score": data.Preferences.GenreScore[0].Score,
+					"name":  doc.Preferences.GenreScore[0].Name,
+					"score": doc.Preferences.GenreScore[0].Score,
 				},
 			},
 		}
@@ -103,16 +103,16 @@ func updateGenreScores(data KafkaData, filter bson.M, ctx context.Context, colle
 	return nil
 }
 
-func updateProtagonistScores(data KafkaData, filter bson.M, ctx context.Context, collection *mongo.Collection) error {
+func updateProtagonistScores(doc KafkaData, filter bson.M, ctx context.Context, collection *mongo.Collection) error {
 	updateIncProtagonist := bson.M{
 		"$inc": bson.M{
-			"preferences.protagonist_score.$[protagonist].score": data.Preferences.ProtagonistScore[0].Score,
+			"preferences.protagonist_score.$[protagonist].score": doc.Preferences.ProtagonistScore[0].Score,
 		},
 	}
 
 	arrayFiltersProtagonist := options.ArrayFilters{
 		Filters: []any{
-			bson.M{"protagonist.name": data.Preferences.ProtagonistScore[0].Name},
+			bson.M{"protagonist.name": doc.Preferences.ProtagonistScore[0].Name},
 		},
 	}
 
@@ -126,8 +126,8 @@ func updateProtagonistScores(data KafkaData, filter bson.M, ctx context.Context,
 		updatePushProtagonist := bson.M{
 			"$addToSet": bson.M{
 				"preferences.protagonist_score": bson.M{
-					"name":  data.Preferences.ProtagonistScore[0].Name,
-					"score": data.Preferences.ProtagonistScore[0].Score,
+					"name":  doc.Preferences.ProtagonistScore[0].Name,
+					"score": doc.Preferences.ProtagonistScore[0].Score,
 				},
 			},
 		}
@@ -140,16 +140,16 @@ func updateProtagonistScores(data KafkaData, filter bson.M, ctx context.Context,
 	return nil
 }
 
-func updateDirectorScores(data KafkaData, filter bson.M, ctx context.Context, collection *mongo.Collection) error {
+func updateDirectorScores(doc KafkaData, filter bson.M, ctx context.Context, collection *mongo.Collection) error {
 	updateIncDirector := bson.M{
 		"$inc": bson.M{
-			"preferences.director_score.$[director].score": data.Preferences.DirectorScore[0].Score,
+			"preferences.director_score.$[director].score": doc.Preferences.DirectorScore[0].Score,
 		},
 	}
 
 	arrayFiltersDirector := options.ArrayFilters{
 		Filters: []any{
-			bson.M{"director.name": data.Preferences.DirectorScore[0].Name},
+			bson.M{"director.name": doc.Preferences.DirectorScore[0].Name},
 		},
 	}
 
@@ -163,8 +163,8 @@ func updateDirectorScores(data KafkaData, filter bson.M, ctx context.Context, co
 		updatePushDirector := bson.M{
 			"$addToSet": bson.M{
 				"preferences.director_score": bson.M{
-					"name":  data.Preferences.DirectorScore[0].Name,
-					"score": data.Preferences.DirectorScore[0].Score,
+					"name":  doc.Preferences.DirectorScore[0].Name,
+					"score": doc.Preferences.DirectorScore[0].Score,
 				},
 			},
 		}

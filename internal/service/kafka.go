@@ -30,10 +30,11 @@ import (
 	"github.com/tiksup/tiksup-kafka-worker/pkg/movie"
 )
 
-func KafkaWorker(configMap *kafka.ConfigMap, mC database.MongoConnection) {
+func KafkaWorker(configMap *kafka.ConfigMap, mongoConn database.MongoConnection, rdbConn database.RedisConnection) {
 	var kafkaData eventstream.KafkaData
-	kafaDB := &eventstream.KafkaRepository{Database: mC.Database, CTX: mC.CTX}
-	movieRepository := &movie.MovieRepository{Database: mC.Database, CTX: mC.CTX}
+	// kafaDB := &eventstream.KafkaRepository{Database: mongoConn.Database, CTX: mongoConn.CTX}
+	movieRepository := &movie.MovieRepository{Database: mongoConn.Database, CTX: mongoConn.CTX}
+	rdbRepository := &eventstream.RedisRepository{Database: rdbConn.Database, CTX: rdbConn.CTX}
 
 	consumer, err := config.KafKaConsumer(configMap)
 	if err != nil {
@@ -52,10 +53,13 @@ func KafkaWorker(configMap *kafka.ConfigMap, mC database.MongoConnection) {
 			continue
 		}
 
-		if err := kafaDB.UpdateUserInfo(kafkaData); err != nil {
+		if err := rdbRepository.MessageQueue(kafkaData.UserID, kafkaData); err != nil {
+			log.Printf("Error registering user info into queue")
+		}
+		/* 	if err := kafaDB.UpdateUserInfo(kafkaData); err != nil {
 			log.Printf("Error registering user info: %v\n", err)
 			continue
-		}
+		} */
 
 		if err := movieRepository.InsertHistory(kafkaData.UserID, kafkaData.MovieID); err != nil {
 			log.Printf("Error registering history: %v\n", err)

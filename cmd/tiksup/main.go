@@ -67,7 +67,9 @@ var (
 	db        *mongo.Database
 	configMap kafka.ConfigMap
 	ctx       = context.TODO()
+	rctx      = context.Background()
 	mongoConn database.MongoConnection
+	redisConn database.RedisConnection
 )
 
 func init() {
@@ -82,9 +84,16 @@ func init() {
 	if err != nil {
 		log.Fatalf("Error trying to connect to mongo: %v", err)
 	}
+
+	rdb, err := database.GetRedisConnection(rctx)
+	if err != nil {
+		log.Fatal("Error trying connect to redis")
+	}
+
 	mongoConn = database.MongoConnection{Database: db, CTX: ctx}
+	redisConn = database.RedisConnection{Database: rdb, CTX: rctx}
 }
 
 func main() {
-	service.KafkaWorker(&configMap, mongoConn)
+	service.KafkaWorker(&configMap, mongoConn, redisConn)
 }

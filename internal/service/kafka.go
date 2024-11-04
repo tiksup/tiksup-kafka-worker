@@ -33,7 +33,7 @@ import (
 func KafkaWorker(configMap *kafka.ConfigMap, mC database.MongoConnection) error {
 	var kafkaData eventstream.KafkaData
 	kafaDB := &eventstream.KafkaRepository{Database: mC.Database, CTX: mC.CTX}
-	movieRepository := movie.MovieRepository{Database: mC.Database, CTX: mC.CTX}
+	movieRepository := &movie.MovieRepository{Database: mC.Database, CTX: mC.CTX}
 
 	consumer, err := config.KafKaConsumer(configMap)
 	if err != nil {

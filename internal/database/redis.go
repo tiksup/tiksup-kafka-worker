@@ -26,7 +26,7 @@ func GetRedisConnection(ctx context.Context) (*redis.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("\033[32mCONECT TO REDIS DATABASE\033[0m")
+	log.Println("\033[32mCONNECTED TO REDIS DATABASE\033[0m")
 
 	return client, nil
 }

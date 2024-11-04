@@ -32,7 +32,6 @@ import (
 
 func KafkaWorker(configMap *kafka.ConfigMap, mongoConn database.MongoConnection, rdbConn database.RedisConnection) {
 	var kafkaData eventstream.KafkaData
-	// kafaDB := &eventstream.KafkaRepository{Database: mongoConn.Database, CTX: mongoConn.CTX}
 	movieRepository := &movie.MovieRepository{Database: mongoConn.Database, CTX: mongoConn.CTX}
 	rdbRepository := &eventstream.RedisRepository{Database: rdbConn.Database, CTX: rdbConn.CTX}
 
@@ -55,11 +54,8 @@ func KafkaWorker(configMap *kafka.ConfigMap, mongoConn database.MongoConnection,
 
 		if err := rdbRepository.MessageQueue(kafkaData.UserID, kafkaData); err != nil {
 			log.Printf("Error registering user info into queue")
-		}
-		/* 	if err := kafaDB.UpdateUserInfo(kafkaData); err != nil {
-			log.Printf("Error registering user info: %v\n", err)
 			continue
-		} */
+		}
 
 		if err := movieRepository.InsertHistory(kafkaData.UserID, kafkaData.MovieID); err != nil {
 			log.Printf("Error registering history: %v\n", err)

@@ -30,7 +30,7 @@ import (
 	"github.com/tiksup/tiksup-kafka-worker/pkg/movie"
 )
 
-func KafkaWorker(configMap *kafka.ConfigMap, mC database.MongoConnection) error {
+func KafkaWorker(configMap *kafka.ConfigMap, mC database.MongoConnection) {
 	var kafkaData eventstream.KafkaData
 	kafaDB := &eventstream.KafkaRepository{Database: mC.Database, CTX: mC.CTX}
 	movieRepository := &movie.MovieRepository{Database: mC.Database, CTX: mC.CTX}

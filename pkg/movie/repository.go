@@ -1,5 +1,7 @@
 /*
-* This file creates a structure to define connection rules to mongodb.
+* This file contains a repository responsible for inserting data
+* into a history, which represents the history of views in the
+* MongoDB database.
 * Copyright (C) 2024-2025 jsusmachaca
 *
 * This program is free software: you can redistribute it and/or modify
@@ -16,7 +18,7 @@
 * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package database
+package movie
 
 import (
 	"context"
@@ -24,7 +26,23 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type MongoConnection struct {
+type MovieRepository struct {
 	Database *mongo.Database
 	CTX      context.Context
+}
+
+func (movie *MovieRepository) InsertHistory(userId string, movieId string) error {
+	ctx := movie.CTX
+	collection := movie.Database.Collection("history")
+	data := MovieHistory{
+		UserID:  userId,
+		MovieID: movieId,
+	}
+
+	_, err := collection.InsertOne(ctx, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

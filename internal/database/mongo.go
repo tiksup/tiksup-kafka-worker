@@ -28,13 +28,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetMongoConnection(ctx context.Context) (*mongo.Collection, error) {
+func GetMongoConnection(ctx context.Context) (*mongo.Database, error) {
 	MONGO_HOST := os.Getenv("MONGO_HOST")
 	MONGO_PORT := os.Getenv("MONGO_PORT")
 	MONGO_USER := os.Getenv("MONGO_USER")
 	MONGO_PASSWORD := os.Getenv("MONGO_PASSWORD")
 	MONGO_DB := os.Getenv("MONGO_DB")
-	MONGO_COLLECTION := os.Getenv("MONGO_COLLECTION")
 
 	uri := fmt.Sprintf("mongodb://%s:%s@%s:%s/?authSource=admin", MONGO_USER, MONGO_PASSWORD, MONGO_HOST, MONGO_PORT)
 
@@ -48,7 +47,7 @@ func GetMongoConnection(ctx context.Context) (*mongo.Collection, error) {
 		return nil, err
 	}
 
-	collection := client.Database(MONGO_DB).Collection(MONGO_COLLECTION)
+	database := client.Database(MONGO_DB)
 
-	return collection, nil
+	return database, nil
 }

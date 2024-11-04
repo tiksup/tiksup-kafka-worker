@@ -29,14 +29,14 @@ import (
 )
 
 type KafkaRepository struct {
-	Collection *mongo.Collection
-	CTX        context.Context
+	Database *mongo.Database
+	CTX      context.Context
 }
 
 func (kafka *KafkaRepository) UpdateUserInfo(data KafkaData) error {
 	filter := bson.M{"user_id": data.UserID}
 	ctx := kafka.CTX
-	collection := kafka.Collection
+	collection := kafka.Database.Collection("user_info")
 
 	ensureFields := bson.M{
 		"$setOnInsert": bson.M{

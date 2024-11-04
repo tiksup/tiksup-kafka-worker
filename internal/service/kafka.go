@@ -27,11 +27,13 @@ import (
 	"github.com/tiksup/tiksup-kafka-worker/internal/config"
 	"github.com/tiksup/tiksup-kafka-worker/internal/database"
 	"github.com/tiksup/tiksup-kafka-worker/pkg/eventstream"
+	"github.com/tiksup/tiksup-kafka-worker/pkg/movie"
 )
 
 func KafkaWorker(configMap *kafka.ConfigMap, mC database.MongoConnection) error {
 	var kafkaData eventstream.KafkaData
-	kafaDB := &eventstream.KafkaRepository{Collection: mC.Collection, CTX: mC.CTX}
+	kafaDB := &eventstream.KafkaRepository{Database: mC.Database, CTX: mC.CTX}
+	movieRepository := movie.MovieRepository{Database: mC.Database, CTX: mC.CTX}
 
 	consumer, err := config.KafKaConsumer(configMap)
 	if err != nil {
@@ -51,7 +53,12 @@ func KafkaWorker(configMap *kafka.ConfigMap, mC database.MongoConnection) error 
 		}
 
 		if err := kafaDB.UpdateUserInfo(kafkaData); err != nil {
-			log.Printf("An error ocurred: %v\n", err)
+			log.Printf("Error registering user info: %v\n", err)
+			continue
+		}
+
+		if err := movieRepository.InsertHistory(kafkaData.UserID, kafkaData.MovieID); err != nil {
+			log.Printf("Error registering history: %v\n", err)
 			continue
 		}
 

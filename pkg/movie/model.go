@@ -1,5 +1,6 @@
 /*
-* This file creates a structure to define connection rules to mongodb.
+* This file contains templates that define the structure of
+* the view history in json format
 * Copyright (C) 2024-2025 jsusmachaca
 *
 * This program is free software: you can redistribute it and/or modify
@@ -16,15 +17,9 @@
 * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package database
+package movie
 
-import (
-	"context"
-
-	"go.mongodb.org/mongo-driver/mongo"
-)
-
-type MongoConnection struct {
-	Database *mongo.Database
-	CTX      context.Context
+type MovieHistory struct {
+	UserID  string `bson:"user_id" json:"user_id"`
+	MovieID string `bson:"movie_id" json:"movie_id"`
 }

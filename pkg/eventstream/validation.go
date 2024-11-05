@@ -1,6 +1,6 @@
 /*
 * This file contains a function in charge of validating id
-* for the mongodb database
+* for the mongodb database.
 * Copyright (C) 2024-2025 jsusmachaca
 *
 * This program is free software: you can redistribute it and/or modify

@@ -53,12 +53,14 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/joho/godotenv"
 	"github.com/tiksup/tiksup-kafka-worker/internal/config"
 	"github.com/tiksup/tiksup-kafka-worker/internal/database"
 	"github.com/tiksup/tiksup-kafka-worker/internal/service"
+	"github.com/tiksup/tiksup-kafka-worker/pkg/trigger"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -95,5 +97,14 @@ func init() {
 }
 
 func main() {
-	service.KafkaWorker(&configMap, mongoConn, redisConn)
+	GRPC_SERVER := os.Getenv("GRPC_SERVER")
+
+	client, err := config.CreateEventClient(GRPC_SERVER)
+	if err != nil {
+		log.Fatalf("Error trying connect to grpc server: %v", err)
+	}
+	defer client.Close()
+
+	gRPC := trigger.GRPCRepository{Client: client.Client, CTX: context.Background()}
+	service.KafkaWorker(&configMap, mongoConn, redisConn, gRPC)
 }

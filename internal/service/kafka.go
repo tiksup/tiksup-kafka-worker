@@ -28,9 +28,15 @@ import (
 	"github.com/tiksup/tiksup-kafka-worker/internal/database"
 	"github.com/tiksup/tiksup-kafka-worker/pkg/eventstream"
 	"github.com/tiksup/tiksup-kafka-worker/pkg/movie"
+	"github.com/tiksup/tiksup-kafka-worker/pkg/trigger"
 )
 
-func KafkaWorker(configMap *kafka.ConfigMap, mongoConn database.MongoConnection, rdbConn database.RedisConnection) {
+func KafkaWorker(
+	configMap *kafka.ConfigMap,
+	mongoConn database.MongoConnection,
+	rdbConn database.RedisConnection,
+	gRPC trigger.GRPCRepository,
+) {
 	var kafkaData eventstream.KafkaData
 	movieRepository := &movie.MovieRepository{Database: mongoConn.Database, CTX: mongoConn.CTX}
 	rdbRepository := &eventstream.RedisRepository{Database: rdbConn.Database, CTX: rdbConn.CTX}
@@ -63,7 +69,10 @@ func KafkaWorker(configMap *kafka.ConfigMap, mongoConn database.MongoConnection,
 		}
 
 		if kafkaData.Next {
-			log.Println("Requesting for more data")
+			if err := trigger.ThrowTrigger(gRPC.Client, gRPC.CTX); err != nil {
+				log.Printf("Error triggering event: %v\n", err)
+				continue
+			}
 		}
 		log.Println("User info insert to updated")
 	}

@@ -12,8 +12,11 @@ type GRPCRepository struct {
 	CTX    context.Context
 }
 
-func ThrowTrigger(client pb.EventTriggerServiceClient, ctx context.Context) error {
-	request := &pb.EventRequest{EventName: "next"}
+func ThrowTrigger(client pb.EventTriggerServiceClient, ctx context.Context, userID string) error {
+	request := &pb.EventRequest{
+		EventName: "next",
+		UserId:    userID,
+	}
 
 	res, err := client.TriggerEvent(ctx, request)
 	if err != nil {

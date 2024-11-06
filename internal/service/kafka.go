@@ -69,7 +69,7 @@ func KafkaWorker(
 		}
 
 		if kafkaData.Next {
-			if err := trigger.ThrowTrigger(gRPC.Client, gRPC.CTX); err != nil {
+			if err := trigger.ThrowTrigger(gRPC.Client, gRPC.CTX, kafkaData.UserID); err != nil {
 				log.Printf("Error triggering event: %v\n", err)
 				continue
 			}

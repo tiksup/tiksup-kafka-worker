@@ -32,7 +32,7 @@ type RedisRepository struct {
 	CTX      context.Context
 }
 
-func (rClient *RedisRepository) MessageQueue(useID string, doc KafkaData) error {
+func (rClient *RedisRepository) MessageQueue(useID string, doc UserInfo) error {
 	rdb := rClient.Database
 	ctx := rClient.CTX
 

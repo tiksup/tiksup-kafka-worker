@@ -19,20 +19,17 @@
 
 package eventstream
 
-type KafkaData struct {
-	UserID      string      `bson:"user_id" json:"user_id"`
-	MovieID     string      `bson:"movie_id" json:"movie_id"`
-	Preferences Preferences `bson:"preferences" json:"preferences"`
-	Next        bool        `bson:"next" json:"next"`
+type UserInfo struct {
+	UserID         string       `json:"user_id"`
+	MovieID        string       `json:"movie_id"`
+	WatchingTime   float64      `json:"watching_time"`
+	WatchingRepeat int          `json:"watching_repeat"`
+	Interactions   Interactions `json:"interactions"`
+	Next           bool         `json:"next"`
 }
 
-type Preferences struct {
-	GenreScore       []Score `bson:"genre_score" json:"genre_score"`
-	ProtagonistScore []Score `bson:"protagonist_score" json:"protagonist_score"`
-	DirectorScore    []Score `bson:"director_score" json:"director_score"`
-}
-
-type Score struct {
-	Name  string  `bson:"name" json:"name"`
-	Score float64 `bson:"score" json:"score"`
+type Interactions struct {
+	Genre       []string `json:"genre"`
+	Protagonist string   `json:"protagonist"`
+	Director    string   `json:"director"`
 }

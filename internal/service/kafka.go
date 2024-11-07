@@ -37,7 +37,7 @@ func KafkaWorker(
 	rdbConn database.RedisConnection,
 	gRPC trigger.GRPCRepository,
 ) {
-	var kafkaData eventstream.KafkaData
+	var kafkaData eventstream.UserInfo
 	movieRepository := &movie.MovieRepository{Database: mongoConn.Database, CTX: mongoConn.CTX}
 	rdbRepository := &eventstream.RedisRepository{Database: rdbConn.Database, CTX: rdbConn.CTX}
 

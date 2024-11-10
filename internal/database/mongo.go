@@ -22,6 +22,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -49,5 +50,6 @@ func GetMongoConnection(ctx context.Context) (*mongo.Database, error) {
 
 	database := client.Database(MONGO_DB)
 
+	log.Println("\033[32mCONNECTED TO MONGODB DATABASE\033[0m")
 	return database, nil
 }

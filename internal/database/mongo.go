@@ -34,7 +34,7 @@ func GetMongoConnection(ctx context.Context) (*mongo.Database, error) {
 	MONGO_PORT := os.Getenv("MONGO_PORT")
 	MONGO_USER := os.Getenv("MONGO_USER")
 	MONGO_PASSWORD := os.Getenv("MONGO_PASSWORD")
-	MONGO_DB := os.Getenv("MONGO_DB")
+	MONGO_DB := os.Getenv("MONGO_DATABASE")
 
 	uri := fmt.Sprintf("mongodb://%s:%s@%s:%s/?authSource=admin", MONGO_USER, MONGO_PASSWORD, MONGO_HOST, MONGO_PORT)
 

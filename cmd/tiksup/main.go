@@ -52,6 +52,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -97,9 +98,15 @@ func init() {
 }
 
 func main() {
-	GRPC_SERVER := os.Getenv("GRPC_SERVER")
+	TARGET_GRPC_SERVER_HOST := os.Getenv("TARGET_GRPC_SERVER_HOST")
+	TARGET_GRPC_SERVER_PORT := os.Getenv("TARGET_GRPC_SERVER_PORT")
+	if TARGET_GRPC_SERVER_HOST == "" || TARGET_GRPC_SERVER_PORT == "" {
+		log.Fatal("TARGET_GRPC_SERVER not set in environment variables")
+	}
 
-	client, err := config.CreateEventClient(GRPC_SERVER)
+	grpcTargetServer := fmt.Sprintf("%s:%s", TARGET_GRPC_SERVER_HOST, TARGET_GRPC_SERVER_PORT)
+
+	client, err := config.CreateEventClient(grpcTargetServer)
 	if err != nil {
 		log.Fatalf("Error trying connect to grpc server: %v", err)
 	}
